@@ -3,7 +3,10 @@ package nz.ubermouse.anime
 import scala.collection.immutable.HashMap
 import com.omertron.thetvdbapi.model.Series
 import nz.ubermouse.anime.ds.AnimeFile
-import nz.ubermouse.anime.overrides.{SwordArtOnline, Hamatora, Chuunibyou, Override}
+import nz.ubermouse.anime.overrides._
+import nz.ubermouse.anime.SeriesMetaData
+import scala.Some
+import nz.ubermouse.anime.ds.AnimeFile
 
 object Overrides {
   private var overrides = new HashMap[String, Override]
@@ -28,4 +31,5 @@ object Overrides {
   register(new Chuunibyou)
   register(new Hamatora)
   register(new SwordArtOnline)
+  register(new SpaceDandy)
 }

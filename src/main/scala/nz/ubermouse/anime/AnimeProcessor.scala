@@ -6,53 +6,56 @@ import com.omertron.thetvdbapi.model.Series
 import java.nio.file.{Paths, StandardCopyOption, Files, Path}
 import java.io.File
 
-class AnimeProcessor(root: Path, animeTitles: List[String]) {
+class AnimeProcessor(root: File, animeTitles: List[String])(searcher: DirectorySearcher, metaDataProvider: MetaData) {
 
   private case class MetadataTransformation(name: String, files: Iterable[AnimeFile], metaDeta: SeriesMetaData)
   private case class AnimeFileData(anime: Anime, root: FileSystemObject)
 
-  def process(to: Path) {
-    val searcher = new DirectorySearcher
-    val foundAnime = searcher(root.toFile, animeTitles)
-    val tvdb = new TheTVDBApi("CFBFA92BDDCC4F64")
-    val metaDataProvider = new TvdbMetaData(tvdb)
+  def process(to: File) {
+    if(!to.exists()) throw new IllegalArgumentException("'to' must exist")
+    if(!to.isFile) throw new IllegalArgumentException("'to' must be a directory")
 
+    val foundAnime = searcher(root, animeTitles)
     val uniqueSeries = foundAnime.groupBy(_.name)
-    val combinedWithMetaData = uniqueSeries.flatMap{case(name, files) => {
-      val (correctedName, processor) = Overrides.getPreProcessorForFile(files.head) match {
-        case Some(processor) => (processor(files.head).name, Some(processor))
-        case None => (name, None)
-      }
-      val maybeSeriesMetaData = metaDataProvider.search(correctedName)
-      val seriesMetaData = maybeSeriesMetaData.get
-      if(maybeSeriesMetaData.isDefined) {
-        val correctedFiles = processor.map(p => files.map(f => p(f, seriesMetaData))).getOrElse(files)
-        Some(MetadataTransformation(correctedName, correctedFiles, seriesMetaData))
-      }
-      else
-        None
-    }}
+    //todo figure out how to make it work with flatMap or similar
+    val combinedWithMetaData = uniqueSeries.map((retrieveMetaData(metaDataProvider) _).tupled).filter(_.isDefined).map(_.get)
     val animeObjects = combinedWithMetaData.map(sd => {
       sd.files.map(anime => AnimeFileData(new Anime(anime, sd.metaDeta, 
         metaDataProvider.forEpisode(sd.metaDeta.id, anime.season, anime.episode).get), anime.fso))
     })
 
-    animeObjects.foreach(files => processGroup(files, to))
+    animeObjects.foreach(files => processGroup(files, to.toPath))
+  }
+
+  private def retrieveMetaData(metaDataProvider: MetaData)(name: String, files: Iterable[AnimeFile]) = {
+    val (correctedName, processor) = Overrides.getPreProcessorForFile(files.head) match {
+      case Some(processor) => (processor(files.head).name, Some(processor))
+      case None => (name, None)
+    }
+    val maybeSeriesMetaData = metaDataProvider.search(correctedName)
+    if(!maybeSeriesMetaData.isDefined) println("No results from meta data provider, looks like show name needs an override")
+    val seriesMetaData = maybeSeriesMetaData.get
+    if(maybeSeriesMetaData.isDefined) {
+      val correctedFiles = processor.map(p => files.map(f => p(f, seriesMetaData))).getOrElse(files)
+      Some(MetadataTransformation(correctedName, correctedFiles, seriesMetaData))
+    }
+    else
+      None
   }
 
   def processGroup(group: Iterable[AnimeFileData], destinationRoot: Path) {
+    case class CombinedMetaData(afd:  AnimeFileData, destination: Path)
     var approvedAll = false
 
     def shouldProcess(afd: AnimeFileData, destination: Path) = {
       !Files.isSymbolicLink(afd.root.path.toPath) && afd.anime.shouldProcess(destination)
     } 
     
-    def needsProcessing(afd: AnimeFileData): Boolean = {
-      if(shouldProcess(afd, destinationRoot))
-        return true
-
-      println(s"Skipped copying file: ${afd.root.name}")
-      false
+    def needsProcessing(afd: AnimeFileData): Boolean = shouldProcess(afd, destinationRoot) match {
+      case true => true
+      case false =>
+        println(s"Skipped copying file: ${afd.root.name}")
+        false
     }
     
     def userApproved(state: (Boolean, List[AnimeFileData]), current: AnimeFileData) = {
@@ -82,7 +85,7 @@ class AnimeProcessor(root: Path, animeTitles: List[String]) {
     val approvedFiles = toBeProcessed.foldLeft(
       (false, List[AnimeFileData]())
     )(userApproved)._2
-    val destinationsAttached = approvedFiles.map(x => (x, destinationRoot.resolve(x.anime.getSubpathForEpisode)))
-    destinationsAttached.foreach{case(afd: AnimeFileData, destination: Path) => afd.anime.process(destination)}
+    val destinationsAttached = approvedFiles.map(x => CombinedMetaData(x, destinationRoot.resolve(x.anime.getSubpathForEpisode)))
+    destinationsAttached.foreach(md => md.afd.anime.process(md.destination))
   }
 }
