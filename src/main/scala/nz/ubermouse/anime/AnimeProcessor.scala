@@ -13,7 +13,7 @@ class AnimeProcessor(root: File, animeTitles: List[String])(searcher: DirectoryS
 
   def process(to: File) {
     if(!to.exists()) throw new IllegalArgumentException("'to' must exist")
-    if(!to.isFile) throw new IllegalArgumentException("'to' must be a directory")
+    if(!to.isDirectory) throw new IllegalArgumentException("'to' must be a directory")
 
     val foundAnime = searcher(root, animeTitles)
     val uniqueSeries = foundAnime.groupBy(_.name)
@@ -66,7 +66,7 @@ class AnimeProcessor(root: File, animeTitles: List[String])(searcher: DirectoryS
         (true, current :: approved)  
       } else {
         print("[y]es/[n]o/[a]ll of group: ")
-        val answer = scala.io.StdIn.readLine()
+        val answer = readLine()
         answer match {
           case "y" => (false, current :: approved)
           case "n" => (false, approved)
