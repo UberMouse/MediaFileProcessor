@@ -6,14 +6,17 @@ import com.omertron.thetvdbapi.model.Series
 import java.nio.file.{Paths, StandardCopyOption, Files, Path}
 import java.io.File
 
-class AnimeProcessor(root: File, animeTitles: List[String])(searcher: DirectorySearcher, metaDataProvider: MetaData) {
+class AnimeProcessor(searcher: DirectorySearcher, metaDataProvider: MetaData) {
 
   private case class MetadataTransformation(name: String, files: Iterable[AnimeFile], metaDeta: SeriesMetaData)
   private case class AnimeFileData(anime: Anime, root: FileSystemObject)
 
-  def process(to: File) {
+  def process(root: File, to: File, animeTitles: List[String]) {
+    if(!root.exists()) throw new IllegalArgumentException("'root' must exist")
+    if(!root.isDirectory) throw new IllegalArgumentException("'root' must be a directory")
     if(!to.exists()) throw new IllegalArgumentException("'to' must exist")
     if(!to.isDirectory) throw new IllegalArgumentException("'to' must be a directory")
+    if(animeTitles.isEmpty) throw new IllegalArgumentException("'animeTitles' must have at least one item in it")
 
     val foundAnime = searcher(root, animeTitles)
     val uniqueSeries = foundAnime.groupBy(_.name)
@@ -43,9 +46,8 @@ class AnimeProcessor(root: File, animeTitles: List[String])(searcher: DirectoryS
       None
   }
 
-  def processGroup(group: Iterable[AnimeFileData], destinationRoot: Path) {
+  private def processGroup(group: Iterable[AnimeFileData], destinationRoot: Path) {
     case class CombinedMetaData(afd:  AnimeFileData, destination: Path)
-    var approvedAll = false
 
     def shouldProcess(afd: AnimeFileData, destination: Path) = {
       !Files.isSymbolicLink(afd.root.path.toPath) && afd.anime.shouldProcess(destination)
@@ -57,35 +59,9 @@ class AnimeProcessor(root: File, animeTitles: List[String])(searcher: DirectoryS
         println(s"Skipped copying file: ${afd.root.name}")
         false
     }
-    
-    def userApproved(state: (Boolean, List[AnimeFileData]), current: AnimeFileData) = {
-      val (approvedAllFiles, approved) = state
-      println(s"Processing from ${current.root.path.toPath} to ${destinationRoot.resolve(current.anime.getSubpathForEpisode)}")
-      
-      if(approvedAllFiles) {
-        (true, current :: approved)  
-      } else {
-        print("[y]es/[n]o/[a]ll of group: ")
-        val answer = readLine()
-        answer match {
-          case "y" => (false, current :: approved)
-          case "n" => (false, approved)
-          case "a" => {
-            (true, current :: approved)
-          }
-          case _ =>  {
-            println(s"No match found, answer: $answer")
-            (false, approved)
-          }
-        }
-      }
-    }
 
     val toBeProcessed = group.filter(needsProcessing)
-    val approvedFiles = toBeProcessed.foldLeft(
-      (false, List[AnimeFileData]())
-    )(userApproved)._2
-    val destinationsAttached = approvedFiles.map(x => CombinedMetaData(x, destinationRoot.resolve(x.anime.getSubpathForEpisode)))
+    val destinationsAttached = toBeProcessed.map(x => CombinedMetaData(x, destinationRoot.resolve(x.anime.getSubpathForEpisode)))
     destinationsAttached.foreach(md => md.afd.anime.process(md.destination))
   }
 }
