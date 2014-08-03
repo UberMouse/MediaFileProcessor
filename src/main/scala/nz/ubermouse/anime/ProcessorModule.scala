@@ -7,5 +7,6 @@ import nz.ubermouse.anime.ds.DirectorySearcher
 class ProcessorModule extends Module {
   bind [TheTVDBApi] to new TheTVDBApi("CFBFA92BDDCC4F64")
   bind [MetaData] to injected [TvdbMetaData]
+  bind [DirectorySearcher] to new DirectorySearcher
   bind [AnimeProcessor] to injected [AnimeProcessor]
 }

@@ -26,7 +26,9 @@ object Main extends App with Injectable {
     "Space Dandy 2",
     "Tokyo Ghoul",
     "Glasslip",
-    "Aldnoah.Zero"
+    "Aldnoah.Zero",
+    "Akame ga Kill",
+    "Gekkan Shoujo Nozaki-Kun"
   )
 
   val processor = inject [AnimeProcessor]

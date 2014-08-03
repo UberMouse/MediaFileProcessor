@@ -4,11 +4,11 @@ version := "1.0"
 
 scalaVersion := "2.11.0"
 
-// Change this to another test framework if you prefer
-libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test"
-
-libraryDependencies += "com.omertron" % "thetvdbapi" % "1.5"
-
-libraryDependencies += "org.scaldi" %% "scaldi-akka" % "0.4"
+libraryDependencies ++= Seq(
+  "com.omertron"  % "thetvdbapi"                   % "1.5",
+  "org.scalatest" %% "scalatest"                   % "2.2.1" % "test",
+  "org.scaldi"    %% "scaldi-akka"                 % "0.4",
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.1.1" % "test"
+)
 
 
