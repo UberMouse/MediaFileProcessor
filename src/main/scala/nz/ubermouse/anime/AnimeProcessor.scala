@@ -11,7 +11,7 @@ class AnimeProcessor(searcher: DirectorySearcher, metaDataProvider: MetaData) {
   private case class MetadataTransformation(name: String, files: Iterable[AnimeFile], metaDeta: SeriesMetaData)
   private case class AnimeFileData(anime: Anime, root: FileSystemObject)
 
-  def process(root: File, to: File, animeTitles: List[String]) {
+  def process(root: File, to: File, animeTitles: Iterable[String]) {
     if(!root.exists()) throw new IllegalArgumentException("'root' must exist")
     if(!root.isDirectory) throw new IllegalArgumentException("'root' must be a directory")
     if(!to.exists()) throw new IllegalArgumentException("'to' must exist")

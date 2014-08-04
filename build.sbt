@@ -1,4 +1,4 @@
-name := """anime-file-parser"""
+name := """show-parser"""
 
 version := "1.0"
 
