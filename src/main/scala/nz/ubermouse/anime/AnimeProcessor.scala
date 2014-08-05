@@ -5,9 +5,10 @@ import com.omertron.thetvdbapi.TheTVDBApi
 import com.omertron.thetvdbapi.model.Series
 import java.nio.file.{Paths, StandardCopyOption, Files, Path}
 import java.io.File
+import java.util.prefs.Preferences
 
 class AnimeProcessor(searcher: DirectorySearcher, metaDataProvider: MetaData) {
-
+  if(!isAdmin) throw new Error("Class was created with out Administrative permissions. Please re start application as Administrator")
   private case class MetadataTransformation(name: String, files: Iterable[AnimeFile], metaDeta: SeriesMetaData)
   private case class AnimeFileData(anime: Anime, root: FileSystemObject)
 
@@ -63,5 +64,18 @@ class AnimeProcessor(searcher: DirectorySearcher, metaDataProvider: MetaData) {
     val toBeProcessed = group.filter(needsProcessing)
     val destinationsAttached = toBeProcessed.map(x => CombinedMetaData(x, destinationRoot.resolve(x.anime.getSubpathForEpisode)))
     destinationsAttached.foreach(md => md.afd.anime.process(md.destination))
+  }
+
+  //http://stackoverflow.com/a/23538961
+  private def isAdmin = {
+    val prefs = Preferences.systemRoot()
+    try {
+      prefs.put("foo", "bar")
+      prefs.remove("foo")
+      prefs.flush()
+      true
+    } catch {
+      case e: Exception => false
+    }
   }
 }
