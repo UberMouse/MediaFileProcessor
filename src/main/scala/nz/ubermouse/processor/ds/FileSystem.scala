@@ -1,4 +1,4 @@
-package nz.ubermouse.anime.ds
+package nz.ubermouse.processor.ds
 
 import java.io.File
 import java.nio.file.Files

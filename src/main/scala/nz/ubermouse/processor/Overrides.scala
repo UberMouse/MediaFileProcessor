@@ -1,12 +1,12 @@
-package nz.ubermouse.anime
+package nz.ubermouse.processor
 
 import scala.collection.immutable.HashMap
 import com.omertron.thetvdbapi.model.Series
-import nz.ubermouse.anime.ds.AnimeFile
-import nz.ubermouse.anime.overrides._
-import nz.ubermouse.anime.SeriesMetaData
+import nz.ubermouse.processor.ds.MediaFile
+import nz.ubermouse.processor.overrides._
+import nz.ubermouse.processor.SeriesMetaData
 import scala.Some
-import nz.ubermouse.anime.ds.AnimeFile
+import nz.ubermouse.processor.ds.MediaFile
 
 object Overrides {
   private var overrides = new HashMap[String, Override]
@@ -15,11 +15,11 @@ object Overrides {
     overrides += ((ovrride.tvdbId, ovrride))
   }
 
-  def apply(anime: AnimeFile, metaData: SeriesMetaData) = {
+  def apply(anime: MediaFile, metaData: SeriesMetaData) = {
     overrides.get(metaData.id).flatMap(x => Some(x(anime, metaData))).getOrElse(anime)
   }
 
-  def getPreProcessorForFile(animeFile: AnimeFile): Option[Override] = {
+  def getPreProcessorForFile(animeFile: MediaFile): Option[Override] = {
     for((id, ovrride) <- overrides) {
       if(ovrride.shouldPreProcess(animeFile))
         return Some(ovrride)

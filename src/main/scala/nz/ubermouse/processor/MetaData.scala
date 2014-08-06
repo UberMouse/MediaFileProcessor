@@ -1,4 +1,4 @@
-package nz.ubermouse.anime
+package nz.ubermouse.processor
 
 case class SeriesMetaData(name: String,
                           id: String)

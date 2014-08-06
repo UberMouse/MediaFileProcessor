@@ -1,4 +1,4 @@
-package nz.ubermouse.anime
+package nz.ubermouse.processor
 
 import com.omertron.thetvdbapi.TheTVDBApi
 import com.omertron.thetvdbapi.model.{Episode, Series}

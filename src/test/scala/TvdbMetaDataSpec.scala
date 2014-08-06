@@ -1,6 +1,6 @@
 import com.omertron.thetvdbapi.model.Series
 import com.omertron.thetvdbapi.TheTVDBApi
-import nz.ubermouse.anime.{SeriesMetaData, TvdbMetaData}
+import nz.ubermouse.processor.{SeriesMetaData, TvdbMetaData}
 
 class TvdbMetaDataSpec extends UnitSpec {
   class NoArgsTvdb extends TheTVDBApi("")

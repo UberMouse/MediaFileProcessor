@@ -1,10 +1,10 @@
-package nz.ubermouse.anime
+package nz.ubermouse.processor
 
-import nz.ubermouse.anime.ds.{FileSystemObject, AnimeFile}
+import nz.ubermouse.processor.ds.{FileSystemObject, MediaFile}
 import com.omertron.thetvdbapi.model.Series
 import java.nio.file.{StandardCopyOption, Files, Path, Paths}
 
-class Anime(animeFile: AnimeFile, series: SeriesMetaData, episode: EpisodeMetaData) {
+class Media(animeFile: MediaFile, series: SeriesMetaData, episode: EpisodeMetaData) {
   def getSubpathForEpisode = {
     Paths.get("")
       .resolve(cleanString(series.name))

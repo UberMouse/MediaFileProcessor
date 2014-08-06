@@ -1,6 +1,6 @@
 import java.io.File
 import java.nio.file.Path
-import nz.ubermouse.anime.ds.{AnimeFile, FileSystemObject, FileSystem, DirectorySearcher}
+import nz.ubermouse.processor.ds.{MediaFile, FileSystemObject, FileSystem, MediaParser}
 import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 
@@ -15,7 +15,7 @@ object FSOFactory {
 class DirectorySearcherSpec extends UnitSpec {
   "describe DirectorySearcher" - {
     "describe Searching a directory" - {
-      "it gives you a list of anime episodes in the supplied directory directory" in {
+      "it gives you a list of processor episodes in the supplied directory directory" in {
         val files = List(
           FSOFactory("[Commie] Ping Pong - 09 [347B4335].mkv"),
           FSOFactory("[denpa] Shingeki no Kyojin (Attack on Titan) - 08 [DUB CNHD 480p][8BF1FB1B].mp4"),
@@ -30,7 +30,7 @@ class DirectorySearcherSpec extends UnitSpec {
           ("Gin no Saji", 2, 6),
           ("Chuunibyou demo Koi ga Shitai! Ren", 1, 4),
           ("Beck Mongolian Chop Squad", 1, 3)
-        ).zip(files).map{case(anime, fso) => AnimeFile(anime._1.toLowerCase, anime._2, anime._3, fso)}
+        ).zip(files).map{case(anime, fso) => MediaFile(anime._1.toLowerCase, anime._2, anime._3, fso)}
         val titles = List(
           "Ping Pong",
           "Shingeki no Kyojin",
@@ -39,9 +39,9 @@ class DirectorySearcherSpec extends UnitSpec {
           "Chuunibyou demo Koi ga Shitai! Ren",
           "BECK Mongolian Chop Squad"
         )
-        val searcher = new DirectorySearcher(new DummyFileSystem(files))
+        val parser = new MediaParser()
 
-        val foundFiles = searcher("C:\\", titles)
+        val foundFiles = parser(files, titles)
 
         foundFiles should equal (expectedResults)
       }

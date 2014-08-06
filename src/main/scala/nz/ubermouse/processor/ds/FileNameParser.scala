@@ -1,8 +1,8 @@
-package nz.ubermouse.anime.ds
+package nz.ubermouse.processor.ds
 
-case class ParsedAnime(releaseGroup: String, series: String, season: Int, episode: Int)
+case class ParsedMediaFile(releaseGroup: String, series: String, season: Int, episode: Int)
 
-class FileNameParser(fileName:String, animeTitles: Iterable[String]) {
+class FileNameParser(fileName:String, titles: Iterable[String]) {
   val RELEASER_R = "(?i:\\[([\\w-]+)\\].*"
   val SERIES_R = "($seriesname)"
   val SEASON_R = "[^s]+S?([0-9])?.*"
@@ -13,12 +13,12 @@ class FileNameParser(fileName:String, animeTitles: Iterable[String]) {
   }
   
   def anime = {
-    val series = animeTitles.map(x => x.toLowerCase)
+    val series = titles.map(x => x.toLowerCase)
 
     series.map(s => {
       val regex = buildRegex(s)
       cleanName match {
-        case regex(releaseGroup, seriesName, season, episode) => Some(ParsedAnime(releaseGroup, seriesName, if (season == null) 1 else season.toInt, episode.toInt))
+        case regex(releaseGroup, seriesName, season, episode) => Some(ParsedMediaFile(releaseGroup, seriesName, if (season == null) 1 else season.toInt, episode.toInt))
         case _ => None
       }
     }).flatten.headOption
