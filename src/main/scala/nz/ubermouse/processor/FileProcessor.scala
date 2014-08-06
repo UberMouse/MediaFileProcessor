@@ -27,7 +27,7 @@ class FileProcessor(parser: MediaParser, metaDataProvider: MetaData, fs: TFileSy
       else List(FileSystemObject(root, root.getName))
 
     }
-    val foundMedia = parser(fs.getFilesIn(root), titles)
+    val foundMedia = parser(files, titles)
 
     processMediaFiles(to, foundMedia)
 
