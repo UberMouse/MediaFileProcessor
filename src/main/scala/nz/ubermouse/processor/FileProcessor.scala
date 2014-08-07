@@ -35,26 +35,31 @@ class FileProcessor(parser: MediaParser, metaDataProvider: MetaData, fs: TFileSy
   }
 
   private def processMediaFiles(to: File, files: Iterable[MediaFile]) {
+    def createMediaObject(sd: MetadataTransformation) = sd.files.map{media =>
+      val episode = metaDataProvider.forEpisode(sd.metaDeta.id, media.season, media.episode)
+      FileData(new Media(media, sd.metaDeta, episode.get), media.fso)
+    }
+
     val uniqueSeries = files.groupBy(_.name)
-    //todo figure out how to make it work with flatMap or similar
-    val combinedWithMetaData = uniqueSeries.map((retrieveMetaData(metaDataProvider) _).tupled).filter(_.isDefined).map(_.get)
-    val mediaObjects = combinedWithMetaData.map(sd => {
-      sd.files.map(media => FileData(new Media(media, sd.metaDeta,
-        metaDataProvider.forEpisode(sd.metaDeta.id, media.season, media.episode).get), media.fso))
-    })
+    val metaDataTransformer = retrieveMetaData(metaDataProvider) _
+    val combinedWithMetaData = uniqueSeries.flatMap{case(title, files) => metaDataTransformer(title, files)}
+    val mediaObjects = combinedWithMetaData.map(createMediaObject)
 
     mediaObjects.foreach(files => processGroup(files, to.toPath))
   }
 
   private def retrieveMetaData(metaDataProvider: MetaData)(name: String, files: Iterable[MediaFile]) = {
-    val (correctedName, processor) = Overrides.getPreProcessorForFile(files.head) match {
+    val head = files.head
+    if(!files.forall(_.name == head.name)) throw new IllegalArgumentException("All files must be for the same series")
+
+    val (correctedName, processor) = Overrides.getPreProcessorForFile(head) match {
       case Some(processor) => (processor(files.head).name, Some(processor))
       case None => (name, None)
     }
     val maybeSeriesMetaData = metaDataProvider.search(correctedName)
     if(!maybeSeriesMetaData.isDefined) println("No results from meta data provider, looks like show name needs an override")
-    val seriesMetaData = maybeSeriesMetaData.get
     if(maybeSeriesMetaData.isDefined) {
+      val seriesMetaData = maybeSeriesMetaData.get
       val correctedFiles = processor.map(p => files.map(f => p(f, seriesMetaData))).getOrElse(files)
       Some(MetadataTransformation(correctedName, correctedFiles, seriesMetaData))
     }
