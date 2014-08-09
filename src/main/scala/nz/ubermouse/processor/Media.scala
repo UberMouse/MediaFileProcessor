@@ -7,9 +7,9 @@ import java.nio.file.{StandardCopyOption, Files, Path, Paths}
 class Media(animeFile: MediaFile, series: SeriesMetaData, episode: EpisodeMetaData) {
   def getSubpathForEpisode = {
     Paths.get("")
-      .resolve(cleanString(series.name))
-      .resolve(s"Season ${animeFile.season}")
-      .resolve(getAnimeFileName)
+         .resolve(cleanString(series.name))
+         .resolve(s"Season ${animeFile.season}")
+         .resolve(getAnimeFileName)
   }
 
   def getAnimeFileName = {
@@ -26,12 +26,9 @@ class Media(animeFile: MediaFile, series: SeriesMetaData, episode: EpisodeMetaDa
   }
 
   def shouldProcess(destinationRoot: Path) = {
-    val destinationFile = destinationRoot.resolve(getSubpathForEpisode)
-    var process = true
-    if(destinationFile.toFile.exists)
-      process = animeFile.fso.path.length > destinationFile.toFile.length
-
-    process
+    val destinationFile = destinationRoot.resolve(getSubpathForEpisode).toFile
+    if(destinationFile.exists) animeFile.fso.path.length > destinationFile.length
+    else true
   }
 
   def extractFileExtension: String = {

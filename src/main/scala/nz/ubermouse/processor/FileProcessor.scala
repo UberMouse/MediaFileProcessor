@@ -13,6 +13,7 @@ import nz.ubermouse.processor.ds.FileSystemObject
 
 class FileProcessor(parser: MediaParser, metaDataProvider: MetaData, fs: TFileSystem) {
   if(!isAdmin) throw new Error("Class was created with out Administrative permissions. Please re start application as Administrator")
+
   private case class MetadataTransformation(name: String, files: Iterable[MediaFile], metaDeta: SeriesMetaData)
   private case class FileData(anime: Media, root: FileSystemObject)
 
@@ -56,15 +57,11 @@ class FileProcessor(parser: MediaParser, metaDataProvider: MetaData, fs: TFileSy
       case Some(processor) => (processor(files.head).name, Some(processor))
       case None => (name, None)
     }
-    val maybeSeriesMetaData = metaDataProvider.search(correctedName)
-    if(!maybeSeriesMetaData.isDefined) println("No results from meta data provider, looks like show name needs an override")
-    if(maybeSeriesMetaData.isDefined) {
-      val seriesMetaData = maybeSeriesMetaData.get
+
+    metaDataProvider.search(correctedName).map { seriesMetaData =>
       val correctedFiles = processor.map(p => files.map(f => p(f, seriesMetaData))).getOrElse(files)
       Some(MetadataTransformation(correctedName, correctedFiles, seriesMetaData))
-    }
-    else
-      None
+    }.getOrElse(None)
   }
 
   private def processGroup(group: Iterable[FileData], destinationRoot: Path) {

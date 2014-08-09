@@ -8,7 +8,8 @@ libraryDependencies ++= Seq(
   "com.omertron"  % "thetvdbapi"                   % "1.5",
   "org.scalatest" %% "scalatest"                   % "2.2.1" % "test",
   "org.scaldi"    %% "scaldi-akka"                 % "0.4",
-  "org.scalamock" %% "scalamock-scalatest-support" % "3.1.1" % "test"
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.1.1" % "test",
+  "org.scalamock" %% "scalamock-core"              % "3.1.2" % "test"
 )
 
 
