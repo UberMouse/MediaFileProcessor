@@ -32,4 +32,5 @@ object Overrides {
   register(new Hamatora)
   register(new SwordArtOnline)
   register(new SpaceDandy)
+  register(new HunterXHunter)
 }

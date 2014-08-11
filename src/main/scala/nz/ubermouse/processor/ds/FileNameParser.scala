@@ -3,10 +3,7 @@ package nz.ubermouse.processor.ds
 case class ParsedMediaFile(releaseGroup: String, series: String, season: Int, episode: Int)
 
 class FileNameParser(fileName:String, titles: Iterable[String]) {
-  val RELEASER_R = "(?i:\\[([\\w-]+)\\].*"
-  val SERIES_R = "($seriesname)"
-  val SEASON_R = "[^s]+S?([0-9])?.*"
-  val EPISODE_R = " e?p?\\.?([0-9]{2,4})(?:v[0-9])? .*(?:\\[|\\().*)"
+
 
   def isAnime = {
     anime.isDefined  
@@ -16,20 +13,11 @@ class FileNameParser(fileName:String, titles: Iterable[String]) {
     val series = titles.map(x => x.toLowerCase)
 
     series.map(s => {
-      val regex = buildRegex(s)
-      cleanName match {
-        case regex(releaseGroup, seriesName, season, episode) => Some(ParsedMediaFile(releaseGroup, seriesName, if (season == null) 1 else season.toInt, episode.toInt))
+      val parser = new NameParser(series)
+      parser.parse(fileName) match {
+        case media: Some[ParsedMediaFile] => media
         case _ => None
       }
     }).flatten.headOption
-  }
-
-  private def buildRegex(seriesName:String) = (RELEASER_R +
-                                              SERIES_R.replaceFirst("\\$seriesname", seriesName) +
-                                              SEASON_R +
-                                              EPISODE_R).r("Release Group", "Series Name", "Season Number", "Episode Number", "remainder")
-
-  private def cleanName = {
-    fileName.toLowerCase.replaceAll("_", " ")
   }
 }
