@@ -28,6 +28,7 @@ class FileProcessor(parser: MediaParser, metaDataProvider: MetaData, fs: TFileSy
       else List(FileSystemObject(root, root.getName))
 
     }
+
     val foundMedia = parser(files, titles)
 
     processMediaFiles(to, foundMedia)
@@ -44,7 +45,7 @@ class FileProcessor(parser: MediaParser, metaDataProvider: MetaData, fs: TFileSy
     val uniqueSeries = files.groupBy(_.name)
     val metaDataTransformer = retrieveMetaData(metaDataProvider) _
     val combinedWithMetaData = uniqueSeries.flatMap{case(title, files) => metaDataTransformer(title, files)}
-    val mediaObjects = combinedWithMetaData.map(createMediaObject)
+    val mediaObjects = combinedWithMetaData.par.map(createMediaObject)
 
     mediaObjects.foreach(files => processGroup(files, to.toPath))
   }

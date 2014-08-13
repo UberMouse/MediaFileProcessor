@@ -5,7 +5,7 @@ class NameParser(series: Iterable[String]) {
   val SERIES_R = "($seriesname)"
   val SEASON_R = "[^s]+S?([0-9])?.*"
   val EPISODE_R = " e?p?\\.?([0-9]{2,4})(?:v[0-9])? .*(?:\\[|\\().*)"
-  val HORRIBLE_SUBS = "\\[(horriblesubs)\\] ($seriesName) - ()([0-9]{1,3}).*"
+  val HORRIBLE_SUBS = "\\[(horriblesubs)\\] ($seriesname) - ()([0-9]{1,3}).*"
   val LOOSE = "\\[(.+)\\] ($seriesname) ()([0-9]{1,4}) .*"
 
   def parse(name: String): Option[ParsedMediaFile] = {
@@ -17,10 +17,11 @@ class NameParser(series: Iterable[String]) {
         val seriesName = matcher.group(2)
         val season = matcher.group(3)
         val episode = matcher.group(4)
+        println(releaseGroup, seriesName, season, episode.dropWhile(_ == '0'))
         return Option(ParsedMediaFile(releaseGroup,
                                       seriesName,
-                                      if(season.isEmpty) 1 else season.toInt,
-                                      episode.toInt))
+                                      if(season == null || season.isEmpty) 1 else season.toInt,
+                                      episode.dropWhile(_ == '0').toInt))
       }
     }
     None
