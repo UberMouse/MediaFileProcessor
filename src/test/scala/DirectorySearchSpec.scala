@@ -1,8 +1,13 @@
 import java.io.File
 import java.nio.file.Path
-import nz.ubermouse.processor.ds.{MediaFile, FileSystemObject, FileSystem, MediaParser}
+import nz.ubermouse.processor.ds._
+import nz.ubermouse.processor.ds.FileSystemObject
+import nz.ubermouse.processor.ds.MediaFile
 import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
+import scaldi.Module
+import reflect.runtime.universe._
+import reflect.runtime.currentMirror
 
 class DummyFileSystem(dummyFiles:Iterable[FileSystemObject]) extends FileSystem {
   override def getFilesIn(path: File): Iterable[FileSystemObject] = dummyFiles
@@ -13,6 +18,7 @@ object FSOFactory {
 }
 
 class DirectorySearcherSpec extends UnitSpec {
+
   "describe DirectorySearcher" - {
     "describe Searching a directory" - {
       "it gives you a list of processor episodes in the supplied directory directory" in {
@@ -22,6 +28,7 @@ class DirectorySearcherSpec extends UnitSpec {
           FSOFactory("[HorribleSubs] Gin no Saji S2 - 06 [720p].mkv"),
           FSOFactory("[FTW]_Chuunibyou_demo_Koi_ga_Shitai!_Ren_-_04_[720p][9172389F].mkv"),
           FSOFactory("[ACX]Beck_Mongolian_Chop_Squad_-_03_-_Moon_on_the_Water_[SaintDeath]_[1AEC41E0].mkv"),
+          FSOFactory("[CBM]_Attack_on_Titan_-_01_- To_You_2000_Years_Later[720p]_[35B8E600].mkv"),
           FSOFactory("mostdefinitelynotanime.gif")
         )
         val expectedResults = List(
@@ -29,7 +36,8 @@ class DirectorySearcherSpec extends UnitSpec {
           ("Shingeki no Kyojin", 1, 8),
           ("Gin no Saji", 2, 6),
           ("Chuunibyou demo Koi ga Shitai! Ren", 1, 4),
-          ("Beck Mongolian Chop Squad", 1, 3)
+          ("Beck Mongolian Chop Squad", 1, 3),
+          ("Attack on Titan", 1, 1)
         ).zip(files).map{case(anime, fso) => MediaFile(anime._1.toLowerCase, anime._2, anime._3, fso)}
         val titles = List(
           "Ping Pong",
