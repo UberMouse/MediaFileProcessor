@@ -12,7 +12,10 @@ class HunterXHunter extends Override {
 
   def apply(animeFile: MediaFile, metaData: SeriesMetaData): MediaFile = {
     var af = animeFile
-    if(af.episode > 58) {
+    if(af.episode > 136) {
+      af = af.copy(episode = af.episode - 136, season = 3)
+    }
+    else if(af.episode > 58) {
       af = af.copy(episode = af.episode - 58, season = 2)
     }
     af.copy(name = af.name + " (2011)")
