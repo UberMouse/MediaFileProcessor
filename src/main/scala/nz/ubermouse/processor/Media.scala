@@ -13,7 +13,7 @@ class Media(animeFile: MediaFile, series: SeriesMetaData, episode: EpisodeMetaDa
   }
 
   def getAnimeFileName = {
-    f"${cleanString(series.name)} - S${animeFile.season}%02dE${animeFile.episode}%02d - ${cleanString(episode.name)}.$extractFileExtension"
+    f"${cleanString(series.name)} - S${animeFile.season}%02dE${animeFile.episode}%02d.$extractFileExtension"
   }
 
   def process(destinationRoot: Path) = {

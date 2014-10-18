@@ -8,10 +8,11 @@ import reflect.runtime.currentMirror
 sealed abstract class Token
 case class ReleaseGroup(name: String) extends Token
 case class Title(title: String) extends Token
-case class Episode(episode: Int) extends Token
+case class Episode(episode: Int, version: String) extends Token
 case class Season(season: Int) extends Token
 case class CatchAll(chunk: String) extends Token
 case class CRC(crc: String) extends Token
+case class Version(number: Int) extends Token
 
 case class ParseResult(remainder: String, token: Token)
 
@@ -53,14 +54,14 @@ class TitleConsumer extends TokenConsumer {
 }
 
 class EpisodeConsumer extends TokenConsumer {
-  def matcher(title: String) = """^(?i:E?P? ?([0-9]{1,4})) """.r
+  def matcher(title: String) = """^(?i:E?P? ?([0-9]{1,4}))v?([0-9]?)""".r
   def consumer(matched: Matcher): Episode = {
     val maybeNum = matched.group(1).dropWhile(_ == '0')
     val num = {
       if(maybeNum.length > 0) maybeNum.toInt
       else -1
     }
-    Episode(num)
+    Episode(num, matched.group(2))
   }
 }
 
@@ -91,12 +92,19 @@ class CRCConsumer extends TokenConsumer {
   }
 }
 
+class VersionConsumer extends TokenConsumer {
+  override def matcher(title: String): Regex = """^v([0-9]+)""" .r
+
+  override def consumer(matched: Matcher): Token = Version(matched.group(1).toInt)
+}
+
 class TokenParser extends NameParser {
 
   val consumers = List[TokenConsumer](
     new CRCConsumer,
     new ReleaseGroupConsumer,
     new TitleConsumer,
+//    new VersionConsumer,
     new EpisodeConsumer,
     new SeasonConsumer,
     new CatchAllConsumer
@@ -108,12 +116,12 @@ class TokenParser extends NameParser {
       if(results.length == 1) {
         var n = name
         while(consumers.flatMap(p => p.parse(n, title)).length == 1)
-          n = n.drop(1)
+          n = n.drop(1).dropWhile(_.isSpaceChar)
         List(ParseNode(CatchAll(name.take(name.length-n.length)), tokenizeWithTitle(n, title)))
       }
       else {
         if(results.length == 0) return List[ParseNode]()
-        List(ParseNode(results.head.token, tokenizeWithTitle(results.head.remainder, title)))
+        List(ParseNode(results.head.token, tokenizeWithTitle(results.head.remainder.dropWhile(_.isSpaceChar), title)))
       }
     }
     tokenizeWithTitle(name, title)
@@ -129,7 +137,7 @@ class TokenParser extends NameParser {
       val children = node.children
       children.foreach {
         case n @ ParseNode(Title(t), _) if title == "" => title = t; recursive(n)
-        case n @ ParseNode(Episode(e), _) if episode == -1 => episode = e; recursive(n)
+        case n @ ParseNode(Episode(e, _), _) if episode == -1 => episode = e; recursive(n)
         case n @ ParseNode(ReleaseGroup(g), _) if releaseGroup == "" => releaseGroup = g; recursive(n)
         case n @ ParseNode(Season(s), _) if season == -1 => season = s;recursive(n)
         case n => recursive(n)
@@ -145,7 +153,9 @@ class TokenParser extends NameParser {
 
   def parse(name: String, titles: Iterable[String]): Option[ParsedMediaFile] = {
     val tokenized_possibilities = titles.flatMap(title => tokenize(name, title).flatMap(extract))
-    tokenized_possibilities.headOption
+    val option = tokenized_possibilities.headOption
+
+    option
   }
 
 }

@@ -39,7 +39,7 @@ class FileProcessor(parser: MediaParser, metaDataProvider: MetaData, fs: TFileSy
   private def processMediaFiles(to: File, files: Iterable[MediaFile]) {
     def createMediaObject(sd: MetadataTransformation) = sd.files.map{media =>
       val episode = metaDataProvider.forEpisode(sd.metaDeta.id, media.season, media.episode)
-      FileData(new Media(media, sd.metaDeta, episode.get), media.fso)
+      FileData(new Media(media, sd.metaDeta, episode.getOrElse(EpisodeMetaData("error"))), media.fso)
     }
 
     val uniqueSeries = files.groupBy(_.name)

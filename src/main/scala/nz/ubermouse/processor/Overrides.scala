@@ -33,4 +33,5 @@ object Overrides {
   register(new SwordArtOnline)
   register(new SpaceDandy)
   register(new HunterXHunter)
+  register(new LogHorizon)
 }

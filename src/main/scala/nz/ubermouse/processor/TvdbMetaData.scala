@@ -17,8 +17,14 @@ class TvdbMetaData(tvdb: TheTVDBApi) extends MetaData {
   }
 
   def forEpisode(seriesIdentifier: String, season: Int, episode: Int): Option[EpisodeMetaData] = {
-    val result = tvdb.getEpisode(seriesIdentifier, season, episode, "en")
-    if(result.getSeriesId != seriesIdentifier) None else Some(result)
+    try {
+      val result = tvdb.getEpisode(seriesIdentifier, season, episode, "en")
+      if(result.getSeriesId != seriesIdentifier) return None else return Some(result)
+    }
+    catch {
+      case e: Throwable => e.printStackTrace()
+    }
+    None
   }
 
 
